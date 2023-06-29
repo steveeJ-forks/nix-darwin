@@ -6,6 +6,7 @@ with lib;
 
 let
   cfg = config.nix.gc;
+  launchdConfig = import ../../launchd/launchd.nix {inherit config lib;};
 in
 
 {
@@ -35,9 +36,12 @@ in
       };
 
       interval = mkOption {
-        type = types.attrs;
+        type = let
+          t = launchdConfig.options.StartCalendarInterval.type;
+        in
+          types.addCheck (t // {description = lib.removePrefix "null or" t.description;}) (x: x != null);
         default = { Hour = 3; Minute = 15; };
-        description = lib.mdDoc "The time interval at which the garbage collector will run.";
+        description = lib.mdDoc "The calendar interval at which the garbage collector will run.";
       };
 
       options = mkOption {
@@ -63,7 +67,7 @@ in
       command = "${config.nix.package}/bin/nix-collect-garbage ${cfg.options}";
       environment.NIX_REMOTE = optionalString config.nix.useDaemon "daemon";
       serviceConfig.RunAtLoad = false;
-      serviceConfig.StartCalendarInterval = [ cfg.interval ];
+      serviceConfig.StartCalendarInterval = cfg.interval;
       serviceConfig.UserName = cfg.user;
     };
 

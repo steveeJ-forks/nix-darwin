@@ -350,49 +350,52 @@ with lib;
         up.  If multiple intervals transpire before the computer is woken, those events will be coalesced into
         one event upon wake from sleep.
       '';
-      type = types.nullOr (types.listOf (types.submodule {
-        options = {
-          Minute = mkOption {
-            type = types.nullOr types.int;
-            default = null;
-            description = lib.mdDoc ''
-              The minute on which this job will be run.
-            '';
-          };
+      type = let
+        submod = types.submodule {
+          options = {
+            Minute = mkOption {
+              type = types.nullOr (types.ints.between 0 59);
+              default = null;
+              description = lib.mdDoc ''
+                The minute on which this job will be run.
+              '';
+            };
 
-          Hour = mkOption {
-            type = types.nullOr types.int;
-            default = null;
-            description = lib.mdDoc ''
-              The hour on which this job will be run.
-            '';
-          };
+            Hour = mkOption {
+              type = types.nullOr (types.ints.between 0 23);
+              default = null;
+              description = lib.mdDoc ''
+                The hour on which this job will be run.
+              '';
+            };
 
-          Day = mkOption {
-            type = types.nullOr types.int;
-            default = null;
-            description = lib.mdDoc ''
-              The day on which this job will be run.
-            '';
-          };
+            Day = mkOption {
+              type = types.nullOr (types.ints.between 1 31);
+              default = null;
+              description = lib.mdDoc ''
+                The day on which this job will be run.
+              '';
+            };
 
-          Weekday = mkOption {
-            type = types.nullOr types.int;
-            default = null;
-            description = lib.mdDoc ''
-              The weekday on which this job will be run (0 and 7 are Sunday).
-            '';
-          };
+            Weekday = mkOption {
+              type = types.nullOr (types.ints.between 0 7);
+              default = null;
+              description = lib.mdDoc ''
+                The weekday on which this job will be run (0 and 7 are Sunday).
+              '';
+            };
 
-          Month = mkOption {
-            type = types.nullOr types.int;
-            default = null;
-            description = lib.mdDoc ''
-              The month on which this job will be run.
-            '';
+            Month = mkOption {
+              type = types.nullOr (types.ints.between 1 12);
+              default = null;
+              description = lib.mdDoc ''
+                The month on which this job will be run.
+              '';
+            };
           };
         };
-      }));
+      in
+        types.nullOr (types.either submod (types.addCheck (types.listOf submod) (x: x != [])));
     };
 
     StandardInPath = mkOption {
