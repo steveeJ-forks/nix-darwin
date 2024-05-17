@@ -22,7 +22,7 @@ in
       internal = true;
       type = types.attrsOf (types.submodule script);
       default = {};
-      description = lib.mdDoc ''
+      description = ''
         A set of shell script fragments that are executed when a NixOS
         system configuration is activated.  Examples are updating
         /etc, creating accounts, and so on.  Since these are executed
@@ -69,6 +69,7 @@ in
       ${cfg.activationScripts.networking.text}
       ${cfg.activationScripts.keyboard.text}
       ${cfg.activationScripts.fonts.text}
+      ${cfg.activationScripts.nvram.text}
 
       ${cfg.activationScripts.postActivation.text}
 

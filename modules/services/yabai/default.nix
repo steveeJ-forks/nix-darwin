@@ -7,9 +7,10 @@ let
 
   toYabaiConfig = opts:
     concatStringsSep "\n" (mapAttrsToList
-      (p: v: "yabai -m config ${p} ${toString v}") opts);
+      (p: v: "yabai -m config ${p} ${toString v}")
+      opts);
 
-  configFile = mkIf (cfg.config != {} || cfg.extraConfig != "")
+  configFile = mkIf (cfg.config != { } || cfg.extraConfig != "")
     "${pkgs.writeScript "yabairc" (
       (if (cfg.config != {})
        then "${toYabaiConfig cfg.config}"
@@ -22,19 +23,19 @@ in
     services.yabai.enable = mkOption {
       type = bool;
       default = false;
-      description = lib.mdDoc "Whether to enable the yabai window manager.";
+      description = "Whether to enable the yabai window manager.";
     };
 
     services.yabai.package = mkOption {
       type = path;
       default = pkgs.yabai;
-      description = lib.mdDoc "The yabai package to use.";
+      description = "The yabai package to use.";
     };
 
     services.yabai.enableScriptingAddition = mkOption {
       type = bool;
       default = false;
-      description = lib.mdDoc ''
+      description = ''
         Whether to enable yabai's scripting-addition.
         SIP must be disabled for this to work.
       '';
@@ -42,7 +43,7 @@ in
 
     services.yabai.config = mkOption {
       type = attrs;
-      default = {};
+      default = { };
       example = literalExpression ''
         {
           focus_follows_mouse = "autoraise";
@@ -56,7 +57,7 @@ in
           window_gap          = 10;
         }
       '';
-      description = lib.mdDoc ''
+      description = ''
         Key/Value pairs to pass to yabai's 'config' domain, via the configuration file.
       '';
     };
@@ -67,7 +68,7 @@ in
       example = literalExpression ''
         yabai -m rule --add app='System Preferences' manage=off
       '';
-      description = lib.mdDoc "Extra arbitrary configuration to append to the configuration file";
+      description = "Extra arbitrary configuration to append to the configuration file";
     };
   };
 
@@ -77,7 +78,7 @@ in
 
       launchd.user.agents.yabai = {
         serviceConfig.ProgramArguments = [ "${cfg.package}/bin/yabai" ]
-                                         ++ optionals (cfg.config != {} || cfg.extraConfig != "") [ "-c" configFile ];
+          ++ optionals (cfg.config != { } || cfg.extraConfig != "") [ "-c" configFile ];
 
         serviceConfig.KeepAlive = true;
         serviceConfig.RunAtLoad = true;
@@ -90,17 +91,18 @@ in
     # TODO: [@cmacrae] Handle removal of yabai scripting additions
     (mkIf (cfg.enableScriptingAddition) {
       launchd.daemons.yabai-sa = {
-        script = ''
-          if [ ! $(${cfg.package}/bin/yabai --check-sa) ]; then
-            ${cfg.package}/bin/yabai --install-sa
-          fi
-
-          ${cfg.package}/bin/yabai --load-sa
-        '';
-
+        script = "${cfg.package}/bin/yabai --load-sa";
         serviceConfig.RunAtLoad = true;
         serviceConfig.KeepAlive.SuccessfulExit = false;
       };
+
+      environment.etc."sudoers.d/yabai".source = pkgs.runCommand "sudoers-yabai" {} ''
+        YABAI_BIN="${cfg.package}/bin/yabai"
+        SHASUM=$(sha256sum "$YABAI_BIN" | cut -d' ' -f1)
+        cat <<EOF >"$out"
+        %admin ALL=(root) NOPASSWD: sha256:$SHASUM $YABAI_BIN --load-sa
+        EOF
+      '';
     })
   ];
 }

@@ -9,16 +9,24 @@ with lib;
       type = types.nullOr types.float;
       default = null;
       example = 1.5;
-      description = lib.mdDoc ''
+      description = ''
         Set the size of cursor. 1 for normal, 4 for maximum.
         The default is 1.
+      '';
+    };
+
+    system.defaults.universalaccess.reduceMotion = mkOption {
+      type = types.nullOr types.bool;
+      default = null;
+      description = ''
+        Disable animation when switching screens or opening apps
       '';
     };
 
     system.defaults.universalaccess.reduceTransparency = mkOption {
       type = types.nullOr types.bool;
       default = null;
-      description = lib.mdDoc ''
+      description = ''
         Disable transparency in the menu bar and elsewhere.
         Requires macOS Yosemite or later.
         The default is false.
@@ -28,7 +36,7 @@ with lib;
     system.defaults.universalaccess.closeViewScrollWheelToggle = mkOption {
       type = types.nullOr types.bool;
       default = null;
-      description = lib.mdDoc ''
+      description = ''
         Use scroll gesture with the Ctrl (^) modifier key to zoom.
         The default is false.
       '';
@@ -37,7 +45,7 @@ with lib;
     system.defaults.universalaccess.closeViewZoomFollowsFocus = mkOption {
       type = types.nullOr types.bool;
       default = null;
-      description = lib.mdDoc ''
+      description = ''
         Follow the keyboard focus while zoomed in.
         Without setting `closeViewScrollWheelToggle` this has no effect.
         The default is false.

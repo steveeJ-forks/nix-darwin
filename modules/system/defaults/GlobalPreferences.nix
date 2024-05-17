@@ -3,15 +3,7 @@
 with lib;
 
 let
-  isFloat = x: isString x && builtins.match "^[+-]?([0-9]*[.])?[0-9]+$" x != null;
-
-  float = mkOptionType {
-    name = "float";
-    description = "float";
-    check = isFloat;
-    merge = options.mergeOneOption;
-  };
-
+  inherit (config.lib.defaults.types) floatWithDeprecationError;
 in {
   options = {
 
@@ -19,7 +11,7 @@ in {
       mkOption {
         type = types.nullOr (types.path);
         default = null;
-        description = lib.mdDoc ''
+        description = ''
           Sets the system-wide alert sound. Found under "Sound Effects" in the
           "Sound" section of "System Preferences". Look in
           "/System/Library/Sounds" for possible candidates.
@@ -28,11 +20,12 @@ in {
 
     system.defaults.".GlobalPreferences"."com.apple.mouse.scaling" =
       mkOption {
-        type = types.nullOr float;
+        type = types.nullOr floatWithDeprecationError;
         default = null;
-        description = lib.mdDoc ''
+        example = -1.0;
+        description = ''
           Sets the mouse tracking speed. Found in the "Mouse" section of
-          "System Preferences". Set to -1 to disable mouse acceleration.
+          "System Preferences". Set to -1.0 to disable mouse acceleration.
         '';
       };
   };

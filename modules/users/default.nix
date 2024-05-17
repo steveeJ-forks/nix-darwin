@@ -24,6 +24,14 @@ let
   deletedUsers = filter (n: isDeleted cfg.users n) cfg.knownUsers;
 
   packageUsers = filterAttrs (_: u: u.packages != []) cfg.users;
+
+  # convert a valid argument to user.shell into a string that points to a shell
+  # executable. Logic copied from modules/system/shells.nix.
+  shellPath = v:
+    if types.shellPackage.check v
+    then "/run/current-system/sw${v.shellPath}"
+    else v;
+
 in
 
 {
@@ -31,7 +39,7 @@ in
     users.knownGroups = mkOption {
       type = types.listOf types.str;
       default = [];
-      description = lib.mdDoc ''
+      description = ''
         List of groups owned and managed by nix-darwin. Used to indicate
         what users are safe to create/delete based on the configuration.
         Don't add system groups to this.
@@ -41,7 +49,7 @@ in
     users.knownUsers = mkOption {
       type = types.listOf types.str;
       default = [];
-      description = lib.mdDoc ''
+      description = ''
         List of users owned and managed by nix-darwin. Used to indicate
         what users are safe to create/delete based on the configuration.
         Don't add the admin user or other system users to this.
@@ -51,13 +59,13 @@ in
     users.groups = mkOption {
       type = types.attrsOf (types.submodule group);
       default = {};
-      description = lib.mdDoc "Configuration for groups.";
+      description = "Configuration for groups.";
     };
 
     users.users = mkOption {
       type = types.attrsOf (types.submodule user);
       default = {};
-      description = lib.mdDoc "Configuration for users.";
+      description = "Configuration for users.";
     };
 
     users.gids = mkOption {
@@ -76,7 +84,7 @@ in
       internal = true;
       type = types.bool;
       default = false;
-      description = lib.mdDoc "Remove and recreate existing groups/users.";
+      description = "Remove and recreate existing groups/users.";
     };
   };
 
@@ -92,7 +100,7 @@ in
         ${optionalString cfg.forceRecreate ''
           g=$(dscl . -read '/Groups/${v.name}' PrimaryGroupID 2> /dev/null) || true
           g=''${g#PrimaryGroupID: }
-          if [ "$g" -eq ${toString v.gid} ]; then
+          if [[ "$g" -eq ${toString v.gid} ]]; then
             echo "deleting group ${v.name}..." >&2
             dscl . -delete '/Groups/${v.name}' 2> /dev/null
           else
@@ -141,7 +149,7 @@ in
         ${optionalString cfg.forceRecreate ''
           u=$(dscl . -read '/Users/${v.name}' UniqueID 2> /dev/null) || true
           u=''${u#UniqueID: }
-          if [ "$u" -eq ${toString v.uid} ]; then
+          if [[ "$u" -eq ${toString v.uid} ]]; then
             echo "deleting user ${v.name}..." >&2
             dscl . -delete '/Users/${v.name}' 2> /dev/null
           else
@@ -151,19 +159,20 @@ in
 
         u=$(dscl . -read '/Users/${v.name}' UniqueID 2> /dev/null) || true
         u=''${u#UniqueID: }
-        if [ -z "$u" ]; then
-          echo "creating user ${v.name}..." >&2
-          dscl . -create '/Users/${v.name}' UniqueID ${toString v.uid}
-          dscl . -create '/Users/${v.name}' PrimaryGroupID ${toString v.gid}
-          dscl . -create '/Users/${v.name}' IsHidden ${if v.isHidden then "1" else "0"}
-          dscl . -create '/Users/${v.name}' RealName '${v.description}'
-          dscl . -create '/Users/${v.name}' NFSHomeDirectory '${v.home}'
-          dscl . -create '/Users/${v.name}' UserShell '${v.shell}'
-          ${optionalString v.createHome "createhomedir -cu '${v.name}'"}
+        if [[ -n "$u" && "$u" -ne "${toString v.uid}" ]]; then
+          echo "[1;31mwarning: existing user '${v.name}' has unexpected uid $u, skipping...[0m" >&2
         else
-          if [ "$u" -ne ${toString v.uid} ]; then
-            echo "[1;31mwarning: existing user '${v.name}' has unexpected uid $u, skipping...[0m" >&2
+          if [ -z "$u" ]; then
+            echo "creating user ${v.name}..." >&2
+            dscl . -create '/Users/${v.name}' UniqueID ${toString v.uid}
+            dscl . -create '/Users/${v.name}' PrimaryGroupID ${toString v.gid}
+            dscl . -create '/Users/${v.name}' IsHidden ${if v.isHidden then "1" else "0"}
+            dscl . -create '/Users/${v.name}' RealName '${v.description}'
+            dscl . -create '/Users/${v.name}' NFSHomeDirectory '${v.home}'
+            ${optionalString v.createHome "createhomedir -cu '${v.name}'"}
           fi
+          # Always set the shell path, in case it was updated
+          dscl . -create '/Users/${v.name}' UserShell ${lib.escapeShellArg (shellPath v.shell)}
         fi
       '') createdUsers}
 

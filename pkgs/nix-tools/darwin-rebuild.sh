@@ -16,6 +16,14 @@ showSyntax() {
   exit 1
 }
 
+sudo() {
+  if command sudo --help | grep -- --preserve-env= >/dev/null; then
+    command sudo -H --preserve-env=PATH env "$@"
+  else
+    command sudo -H "$@"
+  fi
+}
+
 # Parse the command line.
 origArgs=("$@")
 extraMetadataFlags=()
@@ -132,7 +140,7 @@ if [ -n "$flake" ]; then
        flakeAttr=${fragment}
     fi
     if [ -z "$flakeAttr" ]; then
-      flakeAttr=$(hostname -s)
+      flakeAttr=$(scutil --get LocalHostName)
     fi
     flakeAttr=darwinConfigurations.${flakeAttr}
 fi
@@ -187,7 +195,7 @@ fi
 
 if [ "$action" = list ] || [ "$action" = rollback ]; then
   if [ "$USER" != root ] && [ ! -w $(dirname "$profile") ]; then
-    sudo -H nix-env -p "$profile" "${extraProfileFlags[@]}"
+    sudo nix-env -p "$profile" "${extraProfileFlags[@]}"
   else
     nix-env -p "$profile" "${extraProfileFlags[@]}"
   fi
@@ -205,7 +213,7 @@ if [ -z "$systemConfig" ]; then exit 0; fi
 
 if [ "$action" = switch ]; then
   if [ "$USER" != root ] && [ ! -w $(dirname "$profile") ]; then
-    sudo -H nix-env -p "$profile" --set "$systemConfig"
+    sudo nix-env -p "$profile" --set "$systemConfig"
   else
     nix-env -p "$profile" --set "$systemConfig"
   fi

@@ -25,14 +25,14 @@ in
       automatic = mkOption {
         default = false;
         type = types.bool;
-        description = lib.mdDoc "Automatically run the garbage collector at a specific time.";
+        description = "Automatically run the garbage collector at a specific time.";
       };
 
       # Not in NixOS module
       user = mkOption {
         type = types.nullOr types.str;
         default = null;
-        description = lib.mdDoc "User that runs the garbage collector.";
+        description = "User that runs the garbage collector.";
       };
 
       interval = mkOption {
@@ -48,7 +48,7 @@ in
         default = "";
         example = "--max-freed $((64 * 1024**3))";
         type = types.str;
-        description = lib.mdDoc ''
+        description = ''
           Options given to {file}`nix-collect-garbage` when the
           garbage collector is run automatically.
         '';

@@ -7,6 +7,7 @@
   ./security/pam.nix
   ./security/pki
   ./security/sandbox
+  ./security/sudo.nix
   ./system
   ./system/base.nix
   ./system/checks.nix
@@ -34,8 +35,10 @@
   ./system/etc.nix
   ./system/keyboard.nix
   ./system/launchd.nix
+  ./system/nvram.nix
   ./system/patches.nix
   ./system/shells.nix
+  ./system/startup.nix
   ./system/version.nix
   ./time
   ./networking
@@ -54,6 +57,7 @@
   ./services/dnsmasq.nix
   ./services/emacs.nix
   ./services/eternal-terminal.nix
+  ./services/github-runner
   ./services/gitlab-runner.nix
   ./services/hercules-ci-agent
   ./services/ipfs.nix
@@ -67,6 +71,7 @@
   ./services/netbird.nix
   ./services/nix-daemon.nix
   ./services/nix-gc
+  ./services/nix-optimise
   ./services/ofborg
   ./services/postgresql
   ./services/privoxy
@@ -78,10 +83,12 @@
   ./services/synapse-bt.nix
   ./services/synergy
   ./services/tailscale.nix
+  ./services/trezord.nix
   ./services/wg-quick.nix
   ./services/yabai
   ./services/nextdns
   ./programs/bash
+  ./programs/direnv.nix
   ./programs/fish.nix
   ./programs/gnupg.nix
   ./programs/man.nix

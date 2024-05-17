@@ -12,7 +12,7 @@ in
       type = types.listOf (types.either types.shellPackage types.path);
       default = [];
       example = literalExpression "[ pkgs.bashInteractive pkgs.zsh ]";
-      description = lib.mdDoc ''
+      description = ''
         A list of permissible login shells for user accounts.
         No need to mention `/bin/sh`
         and other shells that are available by default on
@@ -40,6 +40,10 @@ in
       # List of shells managed by nix.
       ${concatStringsSep "\n" cfg.shells}
     '';
+
+    environment.etc."shells".knownSha256Hashes = [
+      "9d5aa72f807091b481820d12e693093293ba33c73854909ad7b0fb192c2db193"  # macOS
+    ];
 
   };
 }
